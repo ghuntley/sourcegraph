@@ -6,6 +6,8 @@ import { ChatContextStatus } from '@sourcegraph/cody-shared/src/chat/context'
 import { ChatHistory, ChatMessage } from '@sourcegraph/cody-shared/src/chat/transcript/messages'
 import { Configuration } from '@sourcegraph/cody-shared/src/configuration'
 
+import { AuthStatus } from '../src/chat/protocol'
+
 import { Chat } from './Chat'
 import { Debug } from './Debug'
 import { Header } from './Header'
@@ -27,7 +29,7 @@ export const App: React.FunctionComponent<{ vscodeAPI: VSCodeWrapper }> = ({ vsc
     const [messageInProgress, setMessageInProgress] = useState<ChatMessage | null>(null)
     const [messageBeingEdited, setMessageBeingEdited] = useState<boolean>(false)
     const [transcript, setTranscript] = useState<ChatMessage[]>([])
-    const [isValidLogin, setIsValidLogin] = useState<boolean>()
+    const [authStatus, setAuthStatus] = useState<AuthStatus>()
     const [formInput, setFormInput] = useState('')
     const [inputHistory, setInputHistory] = useState<string[] | []>([])
     const [userHistory, setUserHistory] = useState<ChatHistory | null>(null)
@@ -55,8 +57,8 @@ export const App: React.FunctionComponent<{ vscodeAPI: VSCodeWrapper }> = ({ vsc
                     setView(message.config.hasAccessToken ? 'chat' : 'login')
                     break
                 case 'login':
-                    setIsValidLogin(message.isValid)
-                    setView(message.isValid ? 'chat' : 'login')
+                    setAuthStatus(message.authStatus)
+                    setView(message.authStatus.loggedIn && message.authStatus.hasVerifiedEmail ? 'chat' : 'login')
                     break
                 case 'showTab':
                     if (message.tab === 'chat') {
@@ -98,7 +100,7 @@ export const App: React.FunctionComponent<{ vscodeAPI: VSCodeWrapper }> = ({ vsc
             if (!token || !endpoint) {
                 return
             }
-            setIsValidLogin(undefined)
+            setAuthStatus(undefined)
             vscodeAPI.postMessage({ command: 'settings', serverEndpoint: endpoint, accessToken: token })
         },
         [vscodeAPI]
@@ -119,7 +121,7 @@ export const App: React.FunctionComponent<{ vscodeAPI: VSCodeWrapper }> = ({ vsc
             {view === 'login' && (
                 <Login
                     onLogin={onLogin}
-                    isValidLogin={isValidLogin}
+                    authStatus={authStatus}
                     serverEndpoint={config?.serverEndpoint}
                     isAppInstalled={isAppInstalled}
                     vscodeAPI={vscodeAPI}
