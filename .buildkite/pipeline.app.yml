@@ -14,5 +14,20 @@ steps:
           - 'build-sourcegraph-app-linux'
         agents: { queue: stateless }
         command:
-          - 'pnpm install'
+          - './dev/ci/pnpm-install-with-retry.sh'
           - './enterprise/dev/app/tauri-build.sh'
+        plugins:
+        - https://github.com/sourcegraph/cache-buildkite-plugin.git#master:
+            backend: s3
+            id: node_modules_pnpm
+            key: cache-node_modules-pnpm-{{ checksum 'pnpm-lock.yaml' }}
+            paths:
+            - node_modules
+            restore_keys:
+            - cache-node_modules-pnpm-{{ checksum 'pnpm-lock.yaml' }}
+            s3:
+              bucket: sourcegraph_buildkite_cache
+              endpoint: https://storage.googleapis.com
+              profile: buildkite
+              region: us-central1
+            tarball: {}
