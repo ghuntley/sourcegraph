@@ -5,16 +5,25 @@ set -eu
 GCLOUD_APP_CREDENTIALS_FILE=${GCLOUD_APP_CREDENTIALS_FILE-$HOME/.config/gcloud/application_default_credentials.json}
 cd "$(dirname "${BASH_SOURCE[0]}")"/../../.. || exit 1
 
+bazelrc() {
+  if [[ $(uname -s) == "Darwin" ]]; then
+    echo "--bazelrc=.bazelrc --bazelrc=.aspect/bazelrc/ci.macos.bazelrc"
+  else
+    echo "--bazelrc=.bazelrc --bazelrc=.aspect/bazelrc/ci.bazelrc --bazelrc=.aspect/bazelrc/ci.sourcegraph.bazelrc"
+  fi
+}
+
 bazel_build() {
   local bazel_cmd
   local platform
   platform=$1
   bazel_cmd="bazel"
-  if [[ ${GITHUB_ACTIONS:-""} == "true" ]]; then
-    bazel_cmd="${bazel_cmd} --bazelrc=.aspect/bazelrc/github.bazelrc"
+
+  if [[ ${CI:-""} == "true" ]]; then
+    bazel_cmd="${bazel_cmd} $(bazelrc)"
   fi
 
-  echo "[Bazel] Building Sourcegraph Backend (${VERSION}) for platform: ${platform}"
+  echo "--- :bazel: Building Sourcegraph Backend (${VERSION}) for platform: ${platform}"
   ${bazel_cmd} build //enterprise/cmd/sourcegraph:sourcegraph --stamp --workspace_status_command=./enterprise/dev/app/app_stamp_vars.sh
 
   out=$(bazel cquery //enterprise/cmd/sourcegraph:sourcegraph --output=files)
@@ -50,12 +59,12 @@ set_version() {
   local tmp
   tauri_conf="./src-tauri/tauri.conf.json"
   tmp=$(mktemp)
-  echo "[Script] updating package version in '${tauri_conf}' to ${VERSION}"
+  echo "--- updating package version in '${tauri_conf}' to ${VERSION}"
   jq --arg version "${VERSION}" '.package.version = $version' "${tauri_conf}" > "${tmp}"
   mv "${tmp}" ./src-tauri/tauri.conf.json
 }
 
-set_platform() {
+platform() {
   # We need to determine the platform string for the sourcegraph-backend binary
   local arch=""
   local platform=""
@@ -81,12 +90,16 @@ set_platform() {
       platform="${arch}-unknown-unknown"
   esac
 
-  export PLATFORM=${platform}
+  echo ${platform}
 }
 
-set_platform
+# determine platform if it is not set
+PLATFORM=${PLATFORM:-$(platform)}
+export PLATFORM
+
 set_version
+
 bazel_build "${PLATFORM}"
-echo "[Tauri] Building Application (${VERSION})"]
+echo "--- [Tauri] Building Application (${VERSION})"]
 NODE_ENV=production pnpm run build-app-shell
 pnpm tauri build
