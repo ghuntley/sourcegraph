@@ -4,9 +4,8 @@ set -eu
 cd "$(dirname "${BASH_SOURCE[0]}")"/../../.. || exit 1
 
 download_artifacts() {
-  for artifact in "sourcegraph-backend-x86_64-unknown-linux-gnu"; do
-    buildkite-agent artifact download .bin/${artifact} .bin/${artifact}
-  done
+  mkdir -p .bin
+  buildkite-agent artifact download ".bin/sourcegraph-backend-*" .bin/
 }
 
 set_version() {
