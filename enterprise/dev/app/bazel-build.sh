@@ -80,5 +80,5 @@ export VERSION
 bazel_build "${PLATFORM}" ".bin"
 
 if [[ ${CI:-""} == "true" ]]; then
-  upload_artifacts "${PLATFORM}" ".bin"
+  upload_artifacts "${PLATFORM}" ".bin/sourcegraph-backend-*"
 fi
