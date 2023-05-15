@@ -22,7 +22,7 @@ set_version() {
 
 github_release() {
   mkdir -p dist
-  src=$(find ./src-tauri/target/release -type f \(-name "*.dmg" -o -name "*.deb" -o -name "*.AppImage" -o -name "*.tar.gz" \))
+  src=$(find ./src-tauri/target/release -type f \( -name "*.dmg" -o -name "*.deb" -o -name "*.AppImage" -o -name "*.tar.gz" \))
   for f in ${src}; do
     mv $f "dist/${f}"
   done
