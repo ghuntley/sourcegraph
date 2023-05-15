@@ -207,7 +207,7 @@ const register = async (
                         customHeaders: config.customHeaders,
                     })
                     await chatProvider.sendLogin(authStatus)
-                    if (authStatus.loggedIn) {
+                    if (authStatus.isLoggedIn()) {
                         void vscode.window.showInformationMessage('Token has been retrieved and updated successfully')
                     }
                 }

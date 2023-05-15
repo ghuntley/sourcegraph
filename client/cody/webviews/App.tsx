@@ -58,7 +58,7 @@ export const App: React.FunctionComponent<{ vscodeAPI: VSCodeWrapper }> = ({ vsc
                     break
                 case 'login':
                     setAuthStatus(message.authStatus)
-                    setView(message.authStatus.loggedIn && message.authStatus.hasVerifiedEmail ? 'chat' : 'login')
+                    setView(message.authStatus.isLoggedIn() ? 'chat' : 'login')
                     break
                 case 'showTab':
                     if (message.tab === 'chat') {

@@ -13,6 +13,7 @@ import {
     LOG_EVENT_MUTATION,
     REPOSITORY_EMBEDDING_EXISTS_QUERY,
     AUTH_STATUS_QUERY,
+    SITE_FIELD_NAMES_QUERY,
 } from './queries'
 
 interface APIResponse<T> {
@@ -26,6 +27,11 @@ interface CurrentUserIdResponse {
 
 interface CurrentUserIdVerificationStatusResponse {
     currentUser: { id: string; hasVerifiedEmail: boolean } | null
+    site: { requiresVerifiedEmailForCody: boolean }
+}
+
+interface SiteFieldNamesResponse {
+    __type: { fields: { name: string }[] } | null
 }
 
 interface RepositoryIdResponse {
@@ -90,18 +96,28 @@ export class SourcegraphGraphQLAPIClient {
         )
     }
 
-    public async getAuthStatus(): Promise<
-        { id: string; hasVerifiedEmail: boolean; requiresVerifiedEmail: boolean } | Error
-    > {
-        return this.fetchSourcegraphAPI<APIResponse<CurrentUserIdVerificationStatusResponse>>(
-            AUTH_STATUS_QUERY,
-            {}
-        ).then(response =>
+    public async getAuthStatus(
+        siteHasRequiresVerifiedEmailField: boolean
+    ): Promise<{ id: string; hasVerifiedEmail: boolean; requiresVerifiedEmail: boolean } | Error> {
+        return this.fetchSourcegraphAPI<APIResponse<CurrentUserIdVerificationStatusResponse>>(AUTH_STATUS_QUERY, {
+            siteHasRequiresVerifiedEmailField,
+        }).then(response =>
             extractDataOrError(response, data =>
                 data.currentUser
-                    ? { ...data.currentUser, requiresVerifiedEmail: data.site.requiresVerifiedEmailForCody }
+                    ? { ...data.currentUser, requiresVerifiedEmail: data.site.requiresVerifiedEmailForCody ?? false }
                     : new Error('current user not found')
             )
+        )
+    }
+
+    public async hasRequiresEmailVerificationField(): Promise<boolean | Error> {
+        return this.fetchSourcegraphAPI<APIResponse<SiteFieldNamesResponse>>(SITE_FIELD_NAMES_QUERY, {}).then(
+            response =>
+                extractDataOrError(response, data =>
+                    data.__type
+                        ? data.__type.fields.some(field => field.name == 'requiresVerifiedEmailForCody')
+                        : new Error('could not query site field names')
+                )
         )
     }
 

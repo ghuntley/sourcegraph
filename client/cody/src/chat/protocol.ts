@@ -50,10 +50,21 @@ export const DOTCOM_URL = new URL('https://sourcegraph.com')
 export const LOCAL_APP_URL = new URL('http://localhost:3080')
 
 /**
- * The status of a users authentication, whether they're logged in and have a
+ * The status of a users authentication, whether they're authenticated and have a
  * verified email.
  */
-export interface AuthStatus {
-    loggedIn: boolean
+export class AuthStatus {
+    authenticated: boolean
     hasVerifiedEmail: boolean
+    requiresVerifiedEmail: boolean
+
+    constructor(authenticated: boolean, hasVerifiedEmail: boolean, requiresVerifiedEmail: boolean) {
+        this.authenticated = authenticated
+        this.hasVerifiedEmail = hasVerifiedEmail
+        this.requiresVerifiedEmail = requiresVerifiedEmail
+    }
+
+    isLoggedIn(): boolean {
+        return this.authenticated && (this.requiresVerifiedEmail ? this.hasVerifiedEmail : true)
+    }
 }

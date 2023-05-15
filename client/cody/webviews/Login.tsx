@@ -45,12 +45,12 @@ export const Login: React.FunctionComponent<React.PropsWithChildren<LoginProps>>
 
     return (
         <div className={styles.container}>
-            {authStatus?.loggedIn === false && (
+            {authStatus?.authenticated === false && (
                 <p className={styles.error}>
                     Invalid credentials. Please check the Sourcegraph instance URL and access token.
                 </p>
             )}
-            {authStatus?.loggedIn === true && authStatus?.hasVerifiedEmail === false && (
+            {authStatus?.authenticated === true && authStatus?.hasVerifiedEmail === false && (
                 <p className={styles.error}>
                     Email not verified. Please add a verified email to your Sourcegraph instance account.
                 </p>

@@ -7,14 +7,23 @@ query CurrentUser {
 
 // TODO: We can only query these fields on dotcom ... instrospection query?
 export const AUTH_STATUS_QUERY = `
-query CurrentUser {
+query CurrentUser($siteHasRequiresVerifiedEmailField: Boolean!) {
 	site {
-		requiresVerifiedEmailForCody
+		requiresVerifiedEmailForCody @include(if: $withFriends)
 	}
     currentUser {
         id
 		hasVerifiedEmail
     }
+}`
+
+export const SITE_FIELD_NAMES_QUERY = `
+query {
+  __type(name: "Site") {
+    fields {
+      name
+    }
+  }
 }`
 
 export const REPOSITORY_ID_QUERY = `
