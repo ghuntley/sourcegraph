@@ -44,6 +44,6 @@ echo "--- [Tauri] Building Application (${VERSION})"]
 NODE_ENV=production pnpm run build-app-shell
 pnpm tauri build
 
-if [[ ${CI} == "true" ]];
+if [[ ${CI} == "true" ]]; then
   github_release
 fi
