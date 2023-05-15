@@ -9,7 +9,7 @@ query CurrentUser {
 export const AUTH_STATUS_QUERY = `
 query CurrentUser($siteHasRequiresVerifiedEmailField: Boolean!) {
 	site {
-		requiresVerifiedEmailForCody @include(if: $withFriends)
+		requiresVerifiedEmailForCody @include(if: $siteHasRequiresVerifiedEmailField)
 	}
     currentUser {
         id
