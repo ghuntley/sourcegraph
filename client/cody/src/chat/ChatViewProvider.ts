@@ -611,7 +611,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider, vscode.Disp
                 hasAccessToken: authStatus.isLoggedIn(),
                 experimentalConnectToApp: this.config.experimentalConnectToApp,
             }
-            void vscode.commands.executeCommand('setContext', 'cody.activated', authStatus)
+            void vscode.commands.executeCommand('setContext', 'cody.activated', authStatus.isLoggedIn())
             void this.webview?.postMessage({ type: 'config', config: configForWebview })
         }
 
