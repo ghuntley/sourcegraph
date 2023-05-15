@@ -38,12 +38,32 @@ func DialContext(ctx context.Context, addr string, additionalOpts ...grpc.DialOp
 // DialOptions is a set of default dial options that should be used for all
 // gRPC clients in Sourcegraph. The options can be extended with
 // service-specific options.
-func DialOptions() []grpc.DialOption {
+func DialOptions(additionalOptions ...grpc.DialOption) []grpc.DialOption {
 	// Generate the options dynamically rather than using a static slice
 	// because these options depend on some globals (tracer, trace sampling)
 	// that are not initialized during init time.
 
 	metrics := mustGetClientMetrics()
+
+	out := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithChainStreamInterceptor(
+			grpc_prometheus.StreamClientInterceptor(metrics),
+			propagator.StreamClientPropagator(actor.ActorPropagator{}),
+			propagator.StreamClientPropagator(policy.ShouldTracePropagator{}),
+			propagator.StreamClientPropagator(requestclient.Propagator{}),
+			otelStreamInterceptor,
+		),
+		grpc.WithChainUnaryInterceptor(
+			grpc_prometheus.UnaryClientInterceptor(metrics),
+			propagator.UnaryClientPropagator(actor.ActorPropagator{}),
+			propagator.UnaryClientPropagator(policy.ShouldTracePropagator{}),
+			propagator.UnaryClientPropagator(requestclient.Propagator{}),
+			otelUnaryInterceptor,
+		),
+	}
+
+	return out
 
 	return []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
