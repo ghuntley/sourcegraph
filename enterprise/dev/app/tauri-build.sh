@@ -22,11 +22,14 @@ set_version() {
 
 github_release() {
   mkdir -p dist
-  src=$(find ./src-tauri/target/release -type f \( -name "*.dmg" -o -name "*.deb" -o -name "*.AppImage" -o -name "*.tar.gz" \))
+  src=$(find ./src-tauri/target/release -type f \( -name "*.dmg" -o -name "*.deb" -o -name "*.AppImage" -o -name "*.tar.gz" \) -exec realpath {} \;)
   for f in ${src}; do
-    mv $f "dist/${f}"
+    mv -vf $f "./dist/${f}"
   done
 
+  echo "--- Creating GitHub release for Sourcegraph App (${VERSION})"
+  echo "Release will have to following assets:"
+  ls -al ./dist
   gh release create -d -p ${VERSION} --notes "generated release from buildkite" "./dist/*"
 }
 
@@ -41,4 +44,6 @@ echo "--- [Tauri] Building Application (${VERSION})"]
 NODE_ENV=production pnpm run build-app-shell
 pnpm tauri build
 
-github_release
+if [[ ${CI} == "true" ]];
+  github_release
+fi
