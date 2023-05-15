@@ -20,12 +20,25 @@ set_version() {
   mv "${tmp}" ./src-tauri/tauri.conf.json
 }
 
+github_release() {
+  mkdir -p dist
+  src=$(find ./src-tauri/target/release -type f \(-name "*.dmg" -o -name "*.deb" -o -name "*.AppImage" -o -name "*.tar.gz" \))
+  for f in ${src}; do
+    mv $f "dist/${f}"
+  done
+
+  gh release create -d -p ${VERSION} --notes "generated release from buildkite" "./dist/*"
+}
+
 if [[ ${CI:-""} == "true" ]]; then
   download_artifacts
 fi
 
 VERSION=$(./enterprise/dev/app/app_version.sh)
 set_version ${VERSION}
+
 echo "--- [Tauri] Building Application (${VERSION})"]
 NODE_ENV=production pnpm run build-app-shell
 pnpm tauri build
+
+github_release
