@@ -36,6 +36,11 @@ export async function getAuthStatus(
     config: Pick<ConfigurationWithAccessToken, 'serverEndpoint' | 'accessToken' | 'customHeaders'>
 ): Promise<AuthStatus> {
     const client = new SourcegraphGraphQLAPIClient(config)
+    const currentUserID = await client.getCurrentUserId()
+    if (isError(currentUserID)) {
+        return Promise.resolve(new AuthStatus(false, false, false))
+    }
+
     const hasField = await client.hasRequiresEmailVerificationField()
     if (isError(hasField)) {
         return Promise.reject(hasField)
@@ -200,7 +205,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider, vscode.Disp
                     customHeaders: this.config.customHeaders,
                 })
                 // activate when user has valid login
-                await vscode.commands.executeCommand('setContext', 'cody.activated', authStatus)
+                await vscode.commands.executeCommand('setContext', 'cody.activated', authStatus.isLoggedIn())
                 if (authStatus.isLoggedIn()) {
                     await updateConfiguration('serverEndpoint', message.serverEndpoint)
                     await this.secretStorage.store(CODY_ACCESS_TOKEN_SECRET, message.accessToken)

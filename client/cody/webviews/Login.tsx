@@ -50,11 +50,13 @@ export const Login: React.FunctionComponent<React.PropsWithChildren<LoginProps>>
                     Invalid credentials. Please check the Sourcegraph instance URL and access token.
                 </p>
             )}
-            {authStatus?.authenticated === true && authStatus?.hasVerifiedEmail === false && (
-                <p className={styles.error}>
-                    Email not verified. Please add a verified email to your Sourcegraph instance account.
-                </p>
-            )}
+            {authStatus?.authenticated === true &&
+                authStatus?.requiresVerifiedEmail &&
+                authStatus?.hasVerifiedEmail === false && (
+                    <p className={styles.error}>
+                        Email not verified. Please add a verified email to your Sourcegraph instance account.
+                    </p>
+                )}
             <section className={styles.section}>
                 <h2 className={styles.sectionHeader}>Enterprise User</h2>
                 <form className={styles.wrapper} onSubmit={onSubmit}>
