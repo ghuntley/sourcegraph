@@ -15,10 +15,10 @@ bazelrc() {
 bazel_build() {
   local bazel_cmd
   local platform
-  local target_path
+  local bin_dir
   bazel_cmd="bazel"
   platform=$1
-  target_path=$2
+  bin_dir=$2
 
   if [[ ${CI:-""} == "true" ]]; then
     bazel_cmd="${bazel_cmd} $(bazelrc)"
@@ -28,8 +28,8 @@ bazel_build() {
   ${bazel_cmd} build //enterprise/cmd/sourcegraph:sourcegraph --stamp --workspace_status_command=./enterprise/dev/app/app_stamp_vars.sh
 
   out=$(bazel cquery //enterprise/cmd/sourcegraph:sourcegraph --output=files)
-  mkdir -p "${target_path}"
-  cp -vf "${out}" "${target_path}"
+  mkdir -p "${bin_dir}"
+  cp -vf "${out}" "${bin_dir}/sourcegraph-backend-${platform}"
 }
 
 upload_artifacts() {
@@ -77,10 +77,8 @@ export PLATFORM
 VERSION=$(./enterprise/dev/app/app_version.sh)
 export VERSION
 
-BINARY_PATH=".bin/sourcegraph-backend-${PLATFORM}"
-
-bazel_build "${PLATFORM}" "${BINARY_PATH}"
+bazel_build "${PLATFORM}" ".bin"
 
 if [[ ${CI:-""} == "true" ]]; then
-  upload_artifacts "${PLATFORM}" "${BINARY_PATH}"
+  upload_artifacts "${PLATFORM}" ".bin"
 fi

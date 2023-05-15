@@ -16,6 +16,7 @@ steps:
         command:
           - './dev/ci/pnpm-install-with-retry.sh'
           - './enterprise/dev/app/tauri-build.sh'
+          - './enterprise/dev/app/github-release.sh'
         env:
           AWS_CONFIG_FILE: /buildkite/.aws/config
           AWS_SHARED_CREDENTIALS_FILE: /buildkite/.aws/credentials
