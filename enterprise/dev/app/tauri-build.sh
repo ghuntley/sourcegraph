@@ -23,14 +23,16 @@ set_version() {
 github_release() {
   mkdir -p dist
   src=$(find ./src-tauri/target/release -type f \( -name "*.dmg" -o -name "*.deb" -o -name "*.AppImage" -o -name "*.tar.gz" \) -exec realpath {} \;)
-  for f in ${src}; do
-    mv -vf $f "./dist/${f}"
+  for from in ${src}; do
+    # remove everything until the last slash
+    filename=$(echo ${from} | sed 's|.*/||')
+    mv -vf "$from" "./dist/${filename}"
   done
 
   echo "--- Creating GitHub release for Sourcegraph App (${VERSION})"
   echo "Release will have to following assets:"
   ls -al ./dist
-  gh release create -d -p ${VERSION} --notes "generated release from buildkite" "./dist/*"
+  gh release create -d -p "${VERSION}" --notes "generated release from buildkite" "./dist/*"
 }
 
 if [[ ${CI:-""} == "true" ]]; then
